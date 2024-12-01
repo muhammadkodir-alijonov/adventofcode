@@ -6,7 +6,7 @@ def calculate_total_distance_from_file(file_name):
         with open(file_name, "r") as file:
             for line in file:
                 numbers = line.split()
-                if len(numbers) == 2:  # Faqat 2 ta son borligini tekshiramiz
+                if len(numbers) == 2: 
                     left_list.append(int(numbers[0]))
                     right_list.append(int(numbers[1]))
 
@@ -26,10 +26,8 @@ def calculate_total_distance_from_file(file_name):
         print("Faylda noto'g'ri formatdagi ma'lumot bor.")
         return None
 
-# Fayl nomini belgilang
 file_name = "input.txt"
 
-# Umumiy masofani hisoblash
 result = calculate_total_distance_from_file(file_name)
 if result is not None:
     print(f"Umumiy masofa: {result}")
