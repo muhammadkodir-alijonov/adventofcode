@@ -8,6 +8,8 @@ found = False
 for i in range(n):
     for j in range(m):
         if grid[i][j] == "^":
+            print(grid)
+            print(i, j)
             found = True
             break
 
