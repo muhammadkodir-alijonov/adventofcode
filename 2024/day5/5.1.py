@@ -30,7 +30,16 @@ def is_correct_order(update, ordering_rules):
                 return False
 
     return True
+def is_raely_correct_order(update, ordering_rules):
+    page_index = {page: idx for idx, page in enumerate(update)}
 
+    for rule in ordering_rules:
+        first, second = rule
+        if first in page_index and second in page_index:
+            if page_index[first] > page_index[second]:
+                return False
+
+    return True
 
 def find_middle(update):
     return update[len(update) // 2]
@@ -42,7 +51,7 @@ def main():
     ordering_rules, updates = read_file(file_path)
 
     for update in updates:
-        if is_correct_order(update, ordering_rules):
+        if not is_correct_order(update, ordering_rules):
             middle_page = find_middle(update)
             total_sum += middle_page
 
