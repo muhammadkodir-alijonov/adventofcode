@@ -3,14 +3,9 @@ def read_input(path):
         with open(path) as fin:
             map_ = fin.read().strip()
             return map_
-        
-        
-        
     except FileNotFoundError:
         print(f"Error: File '{path}' not found.")
         return ""
-    
-    
 def make_up_amphipod(map_):
     amphipod = []
     is_file = True
