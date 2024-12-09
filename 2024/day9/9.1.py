@@ -11,7 +11,6 @@ def read_input(path):
         return ""
     
     
-    
 def make_up_amphipod(map_):
     amphipod = []
     is_file = True
