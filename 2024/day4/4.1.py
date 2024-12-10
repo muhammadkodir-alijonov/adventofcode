@@ -2,12 +2,13 @@ def read_file(file_path):
     with open(file_path, 'r') as file:
         return [line.strip() for line in file.readlines()]
 
+
+
 def find_word(grid, word):
     rows = len(grid)
     cols = len(grid[0])
     word_len = len(word)
     count = 0
-
     for row in grid:
         count += row.count(word)
         count += row[::-1].count(word)
@@ -31,10 +32,13 @@ def find_word(grid, word):
 
     return count
 
-file_path = 'input.txt'
-grid = read_file(file_path)
 
-word_to_find = 'XMAS'
-count = find_word(grid, word_to_find)
 
-print(f"XMAS {count}")
+if __name__ == '__main__':
+    file_path = 'input.txt'
+    grid = read_file(file_path)
+
+    word_to_find = 'XMAS'
+    count = find_word(grid, word_to_find)
+    
+    print(f"XMAS {count}")

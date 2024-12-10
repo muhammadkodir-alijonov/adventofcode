@@ -1,50 +1,60 @@
-def calculate(numbers, operators):
-    result = numbers[0]
-    for i in range(len(operators)):
-        if operators[i] == '+':
-            result += numbers[i + 1]
-        if operators[i] == '*':
-            result *= numbers[i + 1]
-        if operators[i] == '||':
-            result = int(str(result) + str(numbers[i + 1]))
+from collections import defaultdict
+from itertools import combinations
 
-    return result
+with open("input.txt") as fin:
+    grid = fin.read().strip().split("\n")
 
-def generate_operators(n):
-    if n == 0:
-        return [[]]
-    smaller = generate_operators(n - 1)
-    op = ['+', '*', '||']
-    result = []
-    for s in smaller:
-        for o in op:
-            result.append(s + [o])
-    return result
+n = len(grid)
 
-def can_target(target, numbers):
-    operator_comb = generate_operators(len(numbers) - 1)
-    for operators in operator_comb:
-        if calculate(numbers, operators) == target:
-            return True
-    return False
+def in_bounds(x, y):
+    return 0 <= x < n and 0 <= y < n
 
-def total_calibration_result(file_path):
-    total = 0
-    with open(file_path, "r") as file:
-        lines = file.readlines()
-        for line in lines:
-            target, numbers = line.split(":")
-            target = int(target.strip())
-            numbers = list(map(int, numbers.strip().split()))
-            if can_target(target, numbers):
-                total += target
-        print(f"Total Lines: {len(lines)}")
-    return total
+def get_antinodes(a, b):
+    ax, ay = a
+    bx, by = b
 
-def main():
-    file_path = "input.txt"
-    result = total_calibration_result(file_path)
-    print(f"Total Result: {result}")
+    dx, dy = bx - ax, by - ay
 
-if __name__ == "__main__":
-    main()
+    i = 0
+    while True:
+        if in_bounds(ax - dx * i, ay - dy * i):
+            yield (ax - dx * i, ay - dy * i)
+        else:
+            break
+        i += 1
+
+    i = 0
+    while True:
+        if in_bounds(bx + dx * i, by + dy * i):
+            yield (bx + dx * i, by + dy * i)
+        else:
+            break
+        i += 1
+
+
+antinodes = set()
+
+all_locs = defaultdict(list)
+for i in range(n):
+    for j in range(n):
+        if grid[i][j] != ".":
+            all_locs[grid[i][j]].append((i, j))
+
+
+for freq in all_locs:
+    locs = all_locs[freq]
+    for a, b in combinations(locs, r=2):
+        for antinode in get_antinodes(a, b):
+            antinodes.add(antinode)
+
+
+for i in range(n):
+    for j in range(n):
+        if (i, j) in antinodes:
+            print("#", end="")
+        else:
+            print(grid[i][j], end="")
+    print()
+
+
+print(len(antinodes))
