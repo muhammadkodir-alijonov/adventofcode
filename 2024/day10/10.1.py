@@ -13,12 +13,12 @@ def search_is_valid_trailhead(grid, i, j):
     directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
 
     visited = set()
-    queue = [(i, j, 0)]
+    queue = [(i, j)]
 
     reachable_nines = set()
 
     while queue:
-        cur_i, cur_j, cur_h = queue[0]
+        cur_i, cur_j= queue[0]
         queue = queue[1:]
 
         if (cur_i, cur_j) in visited:
@@ -32,9 +32,8 @@ def search_is_valid_trailhead(grid, i, j):
         for di, dj in directions:
             next_i, next_j = cur_i + di, cur_j + dj
             if 0 <= next_i < row and 0 <= next_j < col:
-                next_h = grid[next_i][next_j]
-                if next_h == cur_h + 1:
-                    queue.append((next_i, next_j, next_h))
+                if grid[next_i][next_j] == grid[cur_i][cur_j] + 1:
+                    queue.append((next_i, next_j))
 
     return len(reachable_nines)
 
