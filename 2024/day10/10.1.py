@@ -1,64 +1,64 @@
 def read_input(path):
     try:
-        with open(path) as fin:
-            map_ = fin.read().strip()
-            return map_
+        with open(path) as file:
+            return [list(map(int, line.strip())) for line in file.readlines()]
     except FileNotFoundError:
         print(f"Error: File '{path}' not found.")
-        return ""
-def make_up_amphipod(map_):
-    amphipod = []
-    is_file = True
-    file_id = 0
+        return []
 
-    for length in map_:
-        length = int(length)
-        if is_file:
-            amphipod.extend([str(file_id)] * length)
-            file_id += 1
-        else:
-            amphipod.extend(['.'] * length)
-        is_file = not is_file
+def search_is_valid_trailhead(grid, i, j):
+    row = len(grid)
+    col = len(grid[0])
 
-    return amphipod
+    directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
 
-def filesystem_make_up(amphipod):
-    left = 0
-    right = len(amphipod) - 1
+    visited = set()
+    queue = [(i, j, 0)]
 
-    while left < right:
-        if amphipod[left] == '.' and amphipod[right].isnumeric():
-            amphipod[left], amphipod[right] = amphipod[right], '.'
-            left += 1
-            right -= 1
-        elif amphipod[left] != '.':
-            left += 1
-        elif amphipod[right] == '.':
-            right -= 1
+    reachable_nines = set()
 
-    return amphipod
+    while queue:
+        cur_i, cur_j, cur_h = queue[0]
+        queue = queue[1:]
 
-def filesystem_checksum(amphipod):
-    total_sum = 0
-    for i, block in enumerate(amphipod):
-        if block.isnumeric():
-            total_sum += i * int(block)
-    return total_sum
+        if (cur_i, cur_j) in visited:
+            continue
+        visited.add((cur_i, cur_j))
+
+        if grid[cur_i][cur_j] == 9:
+            reachable_nines.add((cur_i, cur_j))
+            continue
+
+        for di, dj in directions:
+            next_i, next_j = cur_i + di, cur_j + dj
+            if 0 <= next_i < row and 0 <= next_j < col:
+                next_h = grid[next_i][next_j]
+                if next_h == cur_h + 1:
+                    queue.append((next_i, next_j, next_h))
+
+    return len(reachable_nines)
+
 
 def main():
     path = "input.txt"
-    map_ = read_input(path)
-    if not map_:
+    grid = read_input(path)
+    if not grid:
         return
 
-    amphipod = make_up_amphipod(map_)
-    print("Initial amphipod:", ''.join(amphipod))
+    row = len(grid)
+    col = len(grid[0])
+    total_score = 0
+    print(grid)
+    print(row)
+    print(col)
 
-    compacted_amphipod = filesystem_make_up(amphipod)
-    print("Compacted amphipod:", ''.join(compacted_amphipod))
+    for i in range(row):
+        for j in range(col):
+            if grid[i][j] == 0:
+                total_score += search_is_valid_trailhead(grid, i, j)
 
-    checksum = filesystem_checksum(compacted_amphipod)
-    print("Filesystem checksum:", checksum)
+    print("Barcha boshlang‘ich nuqtalar umumiy bahosi:", total_score)
+
 
 if __name__ == "__main__":
     main()

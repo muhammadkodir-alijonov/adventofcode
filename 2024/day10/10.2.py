@@ -1,80 +1,55 @@
+from collections import deque
+
 def read_input(path):
     try:
-        with open(path) as fin:
-            return fin.read().strip()
+        with open(path) as file:
+            return [list(map(int, line.strip())) for line in file.readlines()]
     except FileNotFoundError:
         print(f"Error: File '{path}' not found.")
-        return ""
+        return []
 
-def make_filesystem(diskmap):
-    loc = [0] * len(diskmap)
-    size = [0] * len(diskmap)
-    blocks = []
+def bfs_trailhead_rating(grid, i, j):
+    row = len(grid)
+    col = len(grid[0])
 
-    id = 0
-    is_file = True
-    for x in diskmap:
-        x = int(x)
-        if is_file:
-            loc[id] = len(blocks)
-            size[id] = x
-            blocks += [id] * x
-            id += 1
-            is_file = False
-        else:
-            blocks += [None] * x
-            is_file = True
+    directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+    visited = set()
+    queue = deque([(i, j)])
 
-    return blocks, loc, size
+    trail_count = 0
 
-def move_files(filesystem, loc, size):
-    big = 0
-    while size[big] > 0:
-        big += 1
-    big -= 1
+    while queue:
+        cur_i, cur_j = queue.popleft()
 
-    for to_move in range(big, -1, -1):
-        file_size = size[to_move]
-        first_free = 0
-        free_space = 0
+        if grid[cur_i][cur_j] == 9:
+            trail_count += 1
 
-        while first_free < loc[to_move] and free_space < file_size:
-            first_free += free_space
-            free_space = 0
-            while filesystem[first_free] is not None:
-                first_free += 1
-            while first_free + free_space < len(filesystem) and filesystem[first_free + free_space] is None:
-                free_space += 1
+        for di, dj in directions:
+            next_i, next_j = cur_i + di, cur_j + dj
 
-        if first_free >= loc[to_move]:
-            continue
+            if 0 <= next_i < row and 0 <= next_j < col:
+                if grid[next_i][next_j] == grid[cur_i][cur_j] + 1:
+                    visited.add((next_i, next_j))
+                    queue.append((next_i, next_j))
 
-        for idx in range(first_free, first_free + file_size):
-            filesystem[idx] = to_move
-        for idx in range(loc[to_move], loc[to_move] + file_size):
-            filesystem[idx] = None
-
-    return filesystem
-
-def checksum(filesystem):
-    total_sum = 0
-    for i, x in enumerate(filesystem):
-        if x is not None:
-            total_sum += i * x
-    return total_sum
+    return trail_count
 
 def main():
     path = "input.txt"
-    diskmap = read_input(path)
-    if not diskmap:
+    grid = read_input(path)
+    if not grid:
         return
 
-    filesystem, loc, size = make_filesystem(diskmap)
+    row = len(grid)
+    col = len(grid[0])
+    total_rating = 0
 
-    moved_filesystem = move_files(filesystem, loc, size)
+    for i in range(row):
+        for j in range(col):
+            if grid[i][j] == 0:
+                total_rating += bfs_trailhead_rating(grid, i, j)
 
-    result_checksum = checksum(moved_filesystem)
-    print(f"Filesystem checksum: {result_checksum}")
+    print("Total Rating of All Trailheads:", total_rating)
 
 if __name__ == "__main__":
     main()
