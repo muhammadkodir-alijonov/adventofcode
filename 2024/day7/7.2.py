@@ -1,72 +1,50 @@
-with open("./input.txt") as fin:
-    grid = [list(line) for line in fin.read().strip().split("\n")]
+def calculate(numbers, operators):
+    result = numbers[0]
+    for i in range(len(operators)):
+        if operators[i] == '+':
+            result += numbers[i + 1]
+        if operators[i] == '*':
+            result *= numbers[i + 1]
+        if operators[i] == '||':
+            result = int(str(result) + str(numbers[i + 1]))
 
-n = len(grid)
-m = len(grid[0])
+    return result
 
-found = False
-for i in range(n):
-    for j in range(m):
-        if grid[i][j] == "^":
-            found = True
-            break
+def generate_operators(n):
+    if n == 0:
+        return [[]]
+    smaller = generate_operators(n - 1)
+    op = ['+', '*', '||']
+    result = []
+    for s in smaller:
+        for o in op:
+            result.append(s + [o])
+    return result
 
-    if found:
-        break
-
-ii = i
-jj = j
-
-dd = [[-1, 0], [0, 1], [1, 0], [0, -1]]
-
-dir = 0
-og_seen = set()
-while True:
-    og_seen.add((i, j))
-
-    next_i = i + dd[dir][0]
-    next_j = j + dd[dir][1]
-
-    if not (0 <= next_i < n and 0 <= next_j < m):
-        break
-
-    if grid[next_i][next_j] == "#":
-        dir = (dir + 1) % 4
-    else:
-        i, j = next_i, next_j
-
-
-def will_loop(oi, oj):
-    if grid[oi][oj] == "#":
-        return False
-
-    grid[oi][oj] = "#"
-    i, j = ii, jj
-
-    dir = 0
-    seen = set()
-    while True:
-        if (i, j, dir) in seen:
-            grid[oi][oj] = "."
+def can_target(target, numbers):
+    operator_comb = generate_operators(len(numbers) - 1)
+    for operators in operator_comb:
+        if calculate(numbers, operators) == target:
             return True
-        seen.add((i, j, dir))
+    return False
 
-        next_i = i + dd[dir][0]
-        next_j = j + dd[dir][1]
+def total_calibration_result(file_path):
+    total = 0
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+        for line in lines:
+            target, numbers = line.split(":")
+            target = int(target.strip())
+            numbers = list(map(int, numbers.strip().split()))
+            if can_target(target, numbers):
+                total += target
+        print(f"Total Lines: {len(lines)}")
+    return total
 
-        if not (0 <= next_i < n and 0 <= next_j < m):
-            grid[oi][oj] = "."
-            return False
+def main():
+    file_path = "input.txt"
+    result = total_calibration_result(file_path)
+    print(f"Total Result: {result}")
 
-        if grid[next_i][next_j] == "#":
-            dir = (dir + 1) % 4
-        else:
-            i, j = next_i, next_j
-
-
-ans = 0
-for oi, oj in og_seen:
-    loop = will_loop(oi, oj)
-    ans += loop
-
-print(ans)
+if __name__ == "__main__":
+    main()
