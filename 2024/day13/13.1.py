@@ -23,8 +23,8 @@ def parse_input(filename):
                 current_machine['B'] = (x, y)
             elif line.startswith('Prize:'):
                 parts = line.split(',')
-                x = int(parts[0].split('=')[1])
-                y = int(parts[1].split('=')[1])
+                x = 10000000000+int(parts[0].split('=')[1])
+                y = 10000000000+int(parts[1].split('=')[1])
                 current_machine['prize'] = (x, y)
 
     if current_machine:
@@ -53,6 +53,7 @@ def main():
     machines = parse_input('input.txt')
     total_tokens = 0
     winnable_prizes = 0
+    print(machines)
 
     for i, machine in enumerate(machines, 1):
         can_win, a_presses, b_presses = can_win_prize(machine)
