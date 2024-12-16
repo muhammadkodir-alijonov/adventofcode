@@ -1,64 +1,107 @@
-import sys
-import re
+with open("input.txt", "r") as file:
+    lines = file.readlines()
+final_grid = [["."] * (50) for _ in range(len(lines[0]) - 1)]
 
-def getInput(noStrip = False): #get input from file
-    fileName = sys.argv[0] #get filename
-    day = re.findall(r"\d+", fileName)[-1] #get day number from filename
-    with open('input.txt','r') as inputFile:
-        return inputFile.read() if noStrip else inputFile.read().strip()
-    
-unparsedGrid, moves = getInput().split("\n\n")
-moves = moves.replace("\n", "")
-directions = {"<": -1, ">": 1, "^": -1j, "v": 1j}
 
-def parseGrid(unparsedGrid):
-    grid = {i + j*1j: c for j, row in enumerate(unparsedGrid.split("\n")) for i, c in enumerate(row)} # grid is dict with coordinates as keys in form of complex numbers
-    robot = next(coord for coord, c in grid.items() if c == "@")
-    return grid, robot
+def move_from_to(from_row, from_col, go_row, go_col, final_grid):
+    if final_grid[from_row + go_row][from_col + go_col] == ".":
+        final_grid[from_row][from_col] = "."
+        final_grid[from_row + go_row][from_col + go_col] = "@"
+        return True
+    if final_grid[from_row + go_row][from_col + go_col] == "O":
+        O_riginal = [go_row, go_col]
+        while True:
+            if go_row > 0:
+                go_row += 1
+            if go_row < 0:
+                go_row -= 1
+            if go_col > 0:
+                go_col += 1
+            if go_col < 0:
+                go_col -= 1
 
-def part1(unparsedGrid, moves, directions):
-    grid, robot = parseGrid(unparsedGrid)
+            if final_grid[from_row + go_row][from_col + go_col] == "#":
+                return False  # cant
+            if final_grid[from_row + go_row][from_col + go_col] == ".":
+                final_grid[from_row][from_col] = "."  # remove @
+                final_grid[from_row + O_riginal[0]][from_col + O_riginal[1]] = "@"
+                final_grid[from_row + go_row][from_col + go_col] = "O"
+                return True
+    return False
 
-    def move(coord, direction):
-        coord += direction
-        if grid[coord] == "#":
-            return False
-        if grid[coord] == "." or move(coord, direction):
-            grid[coord] = grid[coord-direction]
-            grid[coord-direction] = "."
-            return True
-        return False
+moves = []
+row = 0
+for line in lines:
+    if "#" in line[0]:
+        line = line.split("\n")[0]
+        col = 0
+        for i in line:
+            final_grid[row][col] = i
+            col += 1
+        row += 1
+    else:
+        line = line.split("\n")[0]
+        for i in line:
+            moves.append(i)
 
-    for command in moves:
-        if move(robot, directions[command]):
-            robot += directions[command]
+print(final_grid)
+print(moves)
 
-    return int(sum(coord.real + 100*coord.imag for coord, c in grid.items() if c == "O"))
 
-def part2(unparsedGrid, moves, directions):
-    unparsedGrid = unparsedGrid.replace("#", "##").replace("O", "[]").replace(".", "..").replace("@", "@.")
-    grid, robot = parseGrid(unparsedGrid)
+def findRobotCoords(final_grid):
+    for row in range(len(final_grid)):
+        for col in range(len(final_grid[0])):
+            if final_grid[row][col] == "@":
+                return row, col
 
-    def move(coord, direction):
-        coord += direction
-        if grid[coord] == "#":
-            return False
-        if grid[coord] == "." \
-                or (grid[coord] == "[" and move(coord+1, direction) and move(coord, direction)) \
-                or (grid[coord] == "]" and move(coord-1, direction) and move(coord, direction)):
-            grid[coord] = grid[coord-direction]
-            grid[coord-direction] = "."
-            return True
-        return False
 
-    for command in moves:
-        copy = grid.copy()
-        if move(robot, directions[command]):
-            robot += directions[command]
-        else:
-            grid = copy
+def boxPoints(final_grid):
+    total = 0
+    for row in range(len(final_grid)):
+        for col in range(len(final_grid[0])):
+            if final_grid[row][col] == "O":
+                total += row * 100 + col
+    return total
 
-    return int(sum(coord.real + 100*coord.imag for coord, c in grid.items() if c == "["))
 
-print("Part 1: ", part1(unparsedGrid, moves, directions))
-print("Part 2: ", part2(unparsedGrid, moves, directions))
+for move in moves:
+    robot_row, robot_col = findRobotCoords(final_grid)
+    if move == "<":
+        # Left
+        move_from_to(robot_row, robot_col, 0, -1, final_grid)
+        continue
+    if move == ">":
+        # Right
+        move_from_to(robot_row, robot_col, 0, 1, final_grid)
+        continue
+
+    if move == "^":
+        # Up
+        move_from_to(robot_row, robot_col, -1, 0, final_grid)
+        continue
+
+    if move == "v":
+        # Down
+        move_from_to(robot_row, robot_col, 1, 0, final_grid)
+        continue
+print(final_grid)
+print("\n\n")
+print(moves)
+print("Box points", boxPoints(final_grid))
+
+# n = total number of moves
+# m = size of the grid (rows * columns)
+
+# Time Complexity:
+# Reading Input: O(m)
+# Finding Robot Coordinates: O(m) per move → O(n * m)
+# Move Execution:
+#   - Free Space: O(1)
+#   - Pushing Boxes: O(m) worst case
+# Total: O(n * m)
+
+# Space Complexity:
+# Storing the Grid: O(m)
+# Storing Moves: O(n)
+# Temporary Variables: O(1)
+# Total: O(m + n)
