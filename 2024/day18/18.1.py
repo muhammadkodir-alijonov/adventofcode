@@ -12,10 +12,10 @@ def simulate_memory_space(byte_positions, grid_size=71, max_bytes=1024):
     memory_space = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
 
     for i, (x, y) in enumerate(byte_positions):
+        print(i)
         if i >= max_bytes:
             break
         memory_space[y][x] = '#'
-    print(memory_space)
     return memory_space
 
 
@@ -41,13 +41,16 @@ def bfs_short_path(memory_space, start, goal):
 def main():
     file_path = "input.txt"
     byte_positions = read_input(file_path)
-
     memory_space = simulate_memory_space(byte_positions, grid_size=71, max_bytes=1024)
 
     start = (0, 0)
     goal = (70, 70)
     steps = bfs_short_path(memory_space, start, goal)
+    print(len(memory_space))
+    print(memory_space)
 
+    print(len(byte_positions))
+    print(byte_positions)
     print(f"Minimal qadamlar soni: {steps}")
 
 

@@ -10,11 +10,6 @@ def read_input(file_path):
 
 def simulate_memory_space(byte_positions, grid_size=71, max_bytes=1024):
     memory_space = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
-
-    for i, (x, y) in enumerate(byte_positions):
-        if i >= max_bytes:
-            break
-        memory_space[y][x] = '#'
     print(memory_space)
     return memory_space
 
@@ -36,9 +31,7 @@ def bfs_short_path(memory_space, start, goal):
                 if memory_space[ny][nx] == '.' and (nx, ny) not in visited:
                     visited.add((nx, ny))
                     queue.append(((nx, ny), steps + 1))
-                elif
-
-    return -1
+    return False
 def main():
     file_path = "input.txt"
     byte_positions = read_input(file_path)
@@ -47,9 +40,15 @@ def main():
 
     start = (0, 0)
     goal = (70, 70)
-    steps = bfs_short_path(memory_space, start, goal)
+    print(len(memory_space))
+    print(memory_space)
 
-    print(f"Minimal qadamlar soni: {steps}")
-
+    print(len(byte_positions))
+    print(byte_positions)
+    for i, (x, y) in enumerate(byte_positions):
+        memory_space[y][x] = '#'
+        if not bfs_short_path(memory_space, start, goal):
+            print(f"{x},{y}")
+            break
 if __name__ == "__main__":
     main()
