@@ -1,4 +1,6 @@
 from collections import deque
+
+
 def read_input(file_path):
     byte_positions = []
     with open(file_path, 'r') as file:
@@ -38,6 +40,8 @@ def bfs_short_path(memory_space, start, goal):
                     queue.append(((nx, ny), steps + 1))
 
     return -1
+
+
 def main():
     file_path = "input.txt"
     byte_positions = read_input(file_path)
