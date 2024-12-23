@@ -39,18 +39,18 @@ def count_cheats(grid, dist):
         for col in range(cols):
             if grid[row][col] == "#":# Skip walls
                 continue
-            for radius in range(2, 21): # Cheat duration from 2 to 20
-                for dir_row in range(radius + 1): # Vertical offset
-                    dir_col = radius - dir_row # Horizontal offset
+            for radius in range(2, 21):
+                for dir_row in range(radius + 1):
+                    dir_col = radius - dir_row
                     for new_row, new_col in {
-                        (row + dir_row, col + dir_col), # I
+                        (row + dir_row, col + dir_col),
                         (row + dir_row, col - dir_col),
                         (row - dir_row, col + dir_col),
                         (row - dir_row, col - dir_col),
-                    }:  # All possible cheat directions
+                    }:
                         if 0 <= new_row < rows and 0 <= new_col < cols \
-                                and grid[new_row][new_col] != "#":  # Valid endpoint
-                            if dist[row][col] - dist[new_row][new_col] >= 100 + radius:  # Cheat saves >= 100
+                                and grid[new_row][new_col] != "#":
+                            if dist[row][col] - dist[new_row][new_col] >= 100 + radius:
                                 count += 1
     return count
 
