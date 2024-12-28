@@ -7,7 +7,6 @@ for line in lines:
     connection = line.strip().split("-")
     connections.append(connection)
 
-# Build adjacency list representation of the graph x: {y,z} y: {x} z:{x}
 graph = {}
 for a, b in connections:
     if a not in graph: graph[a] = set()
