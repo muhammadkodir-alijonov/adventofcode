@@ -1,57 +1,62 @@
-def parse_input(input_data):
-    """Parse the input into initial wire values and gate operations."""
-    wire_values = {}
-    gate_operations = []
+with open("./2024/day23/input.txt", "r") as file: 
+    lines = file.readlines()
 
-    for line in input_data.splitlines():
-        if ":" in line:
-            wire, value = line.split(": ")
-            wire_values[wire] = int(value)
-        elif "->" in line:
-            gate_operations.append(line)
-    print(wire_values)
-    print(gate_operations)
-    return wire_values, gate_operations
+# Build adjacency list representation of the graph
+connections = []
+for line in lines:
+    connection = line.strip().split("-")
+    connections.append(connection)
 
-def evaluate_gate(op, val1, val2):
-    """Evaluate the output of a gate based on its operation."""
-    if op == "AND":
-        return val1 & val2
-    elif op == "OR":
-        return val1 | val2
-    elif op == "XOR":
-        return val1 ^ val2
-    else:
-        raise ValueError(f"Unknown operation: {op}")
+# Build adjacency list representation of the graph x: {y,z} y: {x} z:{x}
+graph = {}
+for a, b in connections:
+    if a not in graph: graph[a] = set()
+    if b not in graph: graph[b] = set()
+    graph[a].add(b)
+    graph[b].add(a)
 
-def simulate_circuit(wire_values, gate_operations):
-    pending_gates = gate_operations.copy()
+# Helper function to find the largest network using search
+visited_networks = set()
 
-    while pending_gates:
-        for gate in pending_gates[:]:
-            parts = gate.split()
+def search(node, network):
+    key = tuple(sorted(network))
+    if key in visited_networks:
+        return
+    visited_networks.add(key)
 
-            if len(parts) == 5:  
-                input1, op, input2, _, output = parts
+    for neighbor in graph[node]:
+        if neighbor in network:
+            continue
+        if not all(neighbor in graph[other] for other in network):
+            continue
+        search(neighbor, network | {neighbor}) # union of sets
 
-                if input1 in wire_values and input2 in wire_values:
-                    wire_values[output] = evaluate_gate(op, wire_values[input1], wire_values[input2])
-                    pending_gates.remove(gate)
+# Find all networks
+for node in graph:
+    search(node, {node})
 
-    return wire_values
+# Get the largest network
+largest_network = max(visited_networks, key=len)
 
-def compute_output(wire_values):
-    z_wires = {key: value for key, value in wire_values.items() if key.startswith('z')}
-    print()
-    sorted_bits = [z_wires[f"z{str(i).zfill(2)}"] for i in range(len(z_wires))]
-    binary_number = int("".join(map(str, sorted_bits[::-1])), 2)  
-    return binary_number
+# Generate the password
+password = ",".join(sorted(largest_network))
+print(password)
 
-with open('input.txt', 'r') as file:
-    input_data = file.read()
 
-wire_values, gate_operations = parse_input(input_data)
-final_wire_values = simulate_circuit(wire_values, gate_operations)
-print(f"Final wire values: {final_wire_values}")
-output = compute_output(final_wire_values)
-print(f"Output: {output}")
+# n = number of lines in the input
+# m = average number of neighbors per node
+# l = size of the largest network
+
+# Time Complexity:
+# Reading Input: O(n)
+# Building Graph: O(n)
+# Search Function: O(n * 2^n) (explores all subsets of nodes)
+# Finding Largest Network: O(2^n)
+# Generating Password: O(l * log(l))
+# Total: O(n + n * 2^n + l * log(l)) so O(n * 2^n)
+
+# Space Complexity:
+# Input Storage: O(n)
+# Graph Storage: O(n * m)
+# Visited Networks Storage: O(2^n)
+# Total: O(n * m + 2^n)
