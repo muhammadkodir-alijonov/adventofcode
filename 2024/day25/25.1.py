@@ -38,7 +38,7 @@ def get_heights(grid):
     return heights
 
 def main():
-    path = './2024/day25/input.txt'
+    path = './day25/input.txt'
     locks, keys = read_locks_and_keys(path)
 
     lock_heights = []
