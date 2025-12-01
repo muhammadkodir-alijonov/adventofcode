@@ -4,32 +4,27 @@ def read_file(file_path):
         return [line.strip() for line in content.splitlines()]
 
 def calculate_l_r_point(data) -> int | None:
-    start_point = 50
-    count = 0
+    pos = 50
+    count1 = 0
+    count2 = 0
     size = 100
     for nthe_data in data:
         if not nthe_data:
             continue
-        prev_point = start_point
-        if nthe_data.startswith('L'):
-            step = int(nthe_data[1:])
-            start_point = (start_point - step) % size
-            full_rotations = step // size
-            count += full_rotations
-            for i in range(1, step % size + 1):
-                pos = (prev_point - i) % size
-                if pos == 0:
-                    count += 1
-        elif nthe_data.startswith('R'):
-            step = int(nthe_data[1:])
-            start_point = (start_point + step) % size
-            full_rotations = step // size
-            count += full_rotations
-            for i in range(1, step % size + 1):
-                pos = (prev_point + i) % size
-                if pos == 0:
-                    count += 1
-    return count
+        d = nthe_data[0]
+        nthe_data = int(nthe_data[1:])
+        for _ in range(nthe_data):
+            if d == 'L':
+                pos = (pos - 1 + 100) % 100
+            elif d == 'R':
+                pos = (pos + 1) % 100
+            if pos == 0:
+                count2 += 1
+        if pos == 0:
+            count1 += 1
+    print("count1: " + str(count1))
+    print("count2: " + str(count2))
+    return count2
 
 if __name__ == '__main__':
     file_path = 'input.txt'
