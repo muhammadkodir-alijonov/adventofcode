@@ -1,30 +1,32 @@
 import re
-from itertools import product
+from scipy.optimize import linprog, milp, LinearConstraint, Bounds
+import numpy as np
 
-def parse_data(file_path):
+def parse_data_part2(file_path):
     machines = []
     
     with open(file_path, 'r') as file:
         lines = file.readlines()
         
-    for line in lines:
+    for line in lines: 
         if not line.strip():
             continue
 
-        target_match = re.search(r'\[([.#]+)\]', line)
-        if not target_match:
+        # Parse joltage requirements {3,5,4,7}
+        joltage_match = re.search(r'\{([^\}]+)\}', line)
+        if not joltage_match:
             continue
             
-        target_str = target_match.group(1)
+        joltage_str = joltage_match.group(1)
+        target = [int(x) for x in joltage_str.split(',')]
 
-        target = [1 if c == '#' else 0 for c in target_str]
-
+        # Parse buttons (indices they affect)
         buttons_matches = re.findall(r'\(([\d,]+)\)', line)
         buttons = []
         
-        for b_str in buttons_matches:
+        for b_str in buttons_matches: 
             indices = [int(x) for x in b_str.split(',')]
-            buttons.append(indices)
+            buttons. append(indices)
             
         machines.append({
             'target': target,
@@ -33,49 +35,81 @@ def parse_data(file_path):
         
     print(f"Parsed {len(machines)} machines from data.")
     for i, machine in enumerate(machines):
-        print(f"Machine {i+1}: Target: {machine['target']}, Buttons: {machine['buttons']}")
+        print(f"Machine {i+1}:  Target:  {machine['target']}, Buttons: {machine['buttons']}")
     return machines
 
-def solve_machine(target, buttons):
-    num_lights = len(target)
+def solve_machine_part2(target, buttons):
+    """
+    Solve using Integer Linear Programming. 
+    
+    We need to find non-negative integers x_0, x_1, ..., x_n (button press counts)
+    such that for each counter j: 
+        sum(x_i for all buttons i that affect counter j) = target[j]
+    
+    Minimize: sum(x_i) (total button presses)
+    """
+    num_counters = len(target)
     num_buttons = len(buttons)
-    min_presses = float('inf')
-    found = False
-
-    # Barcha kombinatsiyalarni sinab ko'ramiz (0=bosmaslik, 1=bosish)
-    # Masalan 2 ta tugma bo'lsa: (0,0), (0,1), (1,0), (1,1)
-    for combo in product([0, 1], repeat=num_buttons):
-        # Hozirgi chiroqlar holati (boshida hammasi 0)
-        current_lights = [0] * num_lights
-        press_count = 0
+    
+    if num_buttons == 0:
+        # No buttons, check if target is all zeros
+        if all(t == 0 for t in target):
+            return 0
+        else:
+            return None  # Impossible
+    
+    # Build the constraint matrix A
+    # A[j][i] = 1 if button i affects counter j, else 0
+    A_eq = np.zeros((num_counters, num_buttons))
+    
+    for i, button in enumerate(buttons):
+        for counter_idx in button:
+            if counter_idx < num_counters: 
+                A_eq[counter_idx][i] = 1
+    
+    b_eq = np. array(target)
+    
+    # Objective: minimize sum of all x_i (each x_i counts as 1 press)
+    c = np.ones(num_buttons)
+    
+    # Use MILP (Mixed Integer Linear Programming) from scipy
+    # All variables must be non-negative integers
+    
+    # Bounds:  x_i >= 0, no upper bound (but we can set a reasonable max)
+    max_presses = max(target) * 2 if target else 100  # reasonable upper bound
+    bounds = Bounds(lb=np.zeros(num_buttons), ub=np.full(num_buttons, max_presses))
+    
+    # Equality constraints: A_eq @ x = b_eq
+    constraints = LinearConstraint(A_eq, b_eq, b_eq)
+    
+    # All variables are integers
+    integrality = np.ones(num_buttons)  # 1 means integer
+    
+    try:
+        result = milp(c, constraints=constraints, bounds=bounds, integrality=integrality)
         
-        for i, press in enumerate(combo):
-            if press == 1:
-                press_count += 1
-                # Tugma bosilganda tegishli chiroqlarni o'zgartiramiz
-                affected_lights = buttons[i]
-                for light_idx in affected_lights:
-                    if light_idx < num_lights:
-                        # 0 bo'lsa 1, 1 bo'lsa 0 qilamiz (Toggle)
-                        current_lights[light_idx] = 1 - current_lights[light_idx]
-        
-        # Tekshiramiz: biz xohlagan natija chiqdimi?
-        if current_lights == target:
-            if press_count < min_presses:
-                min_presses = press_count
-                found = True
-
-    return min_presses if found else 0
+        if result.success:
+            total_presses = int(round(result.fun))
+            return total_presses
+        else:
+            print(f"  No solution found:  {result.message}")
+            return None
+    except Exception as e:
+        print(f"  Error solving: {e}")
+        return None
 
 if __name__ == "__main__":
     file_path = 'input.txt'
-    all_machines = parse_data(file_path)
+    all_machines = parse_data_part2(file_path)
     
     total_presses = 0
     
     for i, machine in enumerate(all_machines):
-        presses = solve_machine(machine['target'], machine['buttons'])
-        total_presses += presses
-        print(f"Mashina {i+1}: {presses} ta bosish")
+        presses = solve_machine_part2(machine['target'], machine['buttons'])
+        if presses is not None:
+            total_presses += presses
+            print(f"Machine {i+1}:  {presses} button presses")
+        else:
+            print(f"Machine {i+1}: No solution!")
 
-    print(f"ans: {total_presses}")
+    print(f"\nAnswer: {total_presses}")
